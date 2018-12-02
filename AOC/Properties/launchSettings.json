@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AOC": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "AOC_PATH": "C:\\cs\\aoc"
+      }
+    }
+  }
+}
