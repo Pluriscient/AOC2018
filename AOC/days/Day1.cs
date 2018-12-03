@@ -8,6 +8,7 @@ namespace AOC.days
     {
         public override Task<string> RunPartOne(string[] lines)
         {
+
             var sum = lines.Select(long.Parse).Sum();
             return Task.FromResult(sum.ToString());
         }

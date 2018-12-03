@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -11,46 +13,56 @@ namespace AOC.days
     {
         public override Task<string> RunPartOne(string[] lines)
         {
-            // The non-optimized way
-            var commonPoints = new HashSet<Point>();
             Box[] res = lines.Select(Box.ParseBox).ToArray();
-            Console.WriteLine();
-            for (var i = 0; i < res.Length; i++)
+            var maxWidth = res.Max(b => b.LeftOffset + b.Width) + 1;
+            var maxHeight = res.Max(b => b.TopOffset + b.Height) + 1;
+            Console.WriteLine($"We have a matrix: ({maxWidth}x{maxHeight})");
+            var carpet = new int[maxWidth, maxHeight];
+            foreach (var box in res)
             {
-                Console.Write($"\rCurrently at box {i} of {res.Length}");
-                var current = res[i];
-                foreach (var other in res.Skip(i + 1))
+                foreach (var (x, y) in box.ToPoints())
                 {
-                    foreach (var overlappingPoint in current.OverlappingPoints(other))
-                    {
-                        commonPoints.Add(overlappingPoint);
-                    }
+                    carpet[x, y]++;
                 }
             }
 
-            return Task.FromResult(commonPoints.Count.ToString());
+            var sb = new StringBuilder("Our final matrix:");
+            sb.AppendLine();
+            for (var y = 0; y < carpet.GetLength(0); y++)
+            {
+                for (var x = 0; x < carpet.GetLength(1); x++)
+                {
+                    sb.Append(carpet[x, y]);
+                }
+
+                sb.AppendLine();
+            }
+
+            File.WriteAllText("./foo.txt", sb.ToString());
+            Console.WriteLine("Wrote to file....");
+
+            var count = carpet.Cast<int>().Count(el => el > 1);
+
+
+            return Task.FromResult(count.ToString());
         }
 
         private class Box
         {
-            private int LeftOffset { get; set; }
-            private int TopOffset { get; set; }
-            private int Height { get; set; }
-            private int Width { get; set; }
+            public int Id { get; private set; }
 
-            public IEnumerable<Point> OverlappingPoints(Box other)
+            public int LeftOffset { get; private set; }
+            public int TopOffset { get; private set; }
+            public int Height { get; private set; }
+            public int Width { get; private set; }
+
+            public IEnumerable<(int, int)> ToPoints()
             {
-                return ToPoints().Intersect(other.ToPoints());
-            }
-
-
-            private IEnumerable<Point> ToPoints()
-            {
-                for (var x = LeftOffset; x <= LeftOffset + Width; x++)
+                for (var x = LeftOffset; x < LeftOffset + Width; x++)
                 {
-                    for (var y = TopOffset; y <= TopOffset + Height; y++)
+                    for (var y = TopOffset; y < TopOffset + Height; y++)
                     {
-                        yield return new Point(x, y);
+                        yield return (x, y);
                     }
                 }
             }
@@ -62,17 +74,40 @@ namespace AOC.days
                 int[] m = Parse.Match(line).Groups.Skip(1).Select(gr => int.Parse(gr.Value)).ToArray();
                 return new Box
                 {
-                    LeftOffset = m[0],
-                    TopOffset = m[1],
-                    Width = m[2],
-                    Height = m[3]
+                    Id = m[0],
+                    LeftOffset = m[1],
+                    TopOffset = m[2],
+                    Width = m[3],
+                    Height = m[4]
                 };
             }
         }
 
         public override Task<string> RunPartTwo(string[] lines)
         {
-            throw new System.NotImplementedException();
+            Box[] res = lines.Select(Box.ParseBox).ToArray();
+            var maxWidth = res.Max(b => b.LeftOffset + b.Width) + 1;
+            var maxHeight = res.Max(b => b.TopOffset + b.Height) + 1;
+            Console.WriteLine($"We have a matrix: ({maxWidth}x{maxHeight})");
+            var carpet = new int[maxWidth, maxHeight];
+            foreach (var box in res)
+            {
+                foreach (var (x, y) in box.ToPoints())
+                {
+                    carpet[x, y]++;
+                }
+            }
+
+            return Task.FromResult(res
+                .First(box => box.ToPoints().All((tuple => carpet[tuple.Item1, tuple.Item2] == 1))).Id.ToString());
+
+//            foreach (var box in res)
+//            {
+//                if (box.ToPoints().All((d) => carpet[d.Item1, d.Item2] == 1))
+//                    return Task.FromResult(box.Id.ToString());
+//            }
+//
+//            return Task.FromResult("");
         }
     }
 }
