@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
@@ -6,7 +8,7 @@ namespace AOC
 {
     /// <summary>
     /// A day in the Advent Of Code adventure
-    /// </summary
+    /// </summary>
     [UsedImplicitly]
     public abstract class AOCDay
     {
@@ -35,7 +37,17 @@ namespace AOC
         public virtual async Task<string> RunPartOne(string path)
         {
             string[] lines = await File.ReadAllLinesAsync(path).ConfigureAwait(false);
-            return await RunPartOne(lines);
+
+            try
+            {
+                return await RunPartOne(lines);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Ran into error: " + e.Message);
+                Debugger.Break();
+                throw;
+            }
         }
 
         /// <summary>
@@ -54,7 +66,16 @@ namespace AOC
         public virtual async Task<string> RunPartTwo(string path)
         {
             string[] lines = await File.ReadAllLinesAsync(path).ConfigureAwait(false);
-            return await RunPartTwo(lines);
+            try
+            {
+                return await RunPartTwo(lines);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Ran into error: " + e.Message);
+                Debugger.Break();
+                throw;
+            }
         }
 
         /// <summary>

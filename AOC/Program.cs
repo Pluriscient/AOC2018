@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -114,15 +115,17 @@ namespace AOC
             return isPartOne;
         }
 
-        private static int GetChoice(List<AOCDay> list, int choice)
+        private static int GetChoice(ICollection list, int choice)
         {
             Console.WriteLine(@"Advent Of Code solutions");
             Console.WriteLine($"Please choose the day to execute from 1 to {choice} (or enter for the last one)");
             while (true)
             {
                 var line = Console.ReadLine();
-                if (int.TryParse(line, out choice)) break;
-                if (line != null && line.Trim().Length == 0)
+                var oldChoice = choice;
+                if (int.TryParse(line, out choice) && choice > 0 && choice <= list.Count) break;
+                choice = oldChoice;
+                if (string.IsNullOrWhiteSpace(line))
                 {
                     break;
                 }
