@@ -15,76 +15,76 @@ namespace AOC.days
         {
             var updates = lines.Select(Update.ParseUpdate);
 
-            var guards = new Dictionary<int, List<(int, int)>>();
-            int current = -1;
-            int lastEvent = -1;
-            foreach (var group in updates.GroupBy(x=>x.DateTime.Date))
+            var guards = new Dictionary<int, List<(DateTime, DateTime)>>();
+
+            int currentGuard = -1;
+            Update lastUpdate = null;
+            foreach (var update in updates.OrderBy(update => update.DateTime))
             {
-                var el = group.OrderBy(x => x.DateTime);
-                int i = 0;
-                foreach (var update in el)
+                switch (update.UpdateKind)
                 {
-                    if ()
+                    case Update.UpdateType.StartShift:
+                        currentGuard = update.Guard ?? throw new Exception("GUard not FoUNd");
+                        if (!guards.ContainsKey(currentGuard))
+                            guards.Add(currentGuard, new List<(DateTime, DateTime)>());
+                        break;
+                    case Update.UpdateType.Awaken
+                        when lastUpdate == null || lastUpdate.UpdateKind != Update.UpdateType.Asleep:
+                        throw new Exception("Can't awaken w/o sleep");
+                    case Update.UpdateType.Awaken:
+                        guards[currentGuard].Add((lastUpdate.DateTime, update.DateTime));
+                        break;
+                    case Update.UpdateType.Asleep:
+                    default:
+                        break;
+                }
+
+                lastUpdate = update;
+            }
+
+            foreach (var guard in guards)
+            {
+//                Console.WriteLine($"WE have guard {guard.Key} that falls asleep on these dates:");
+                foreach (var (start, end) in guard.Value)
+                {
+//                    Console.WriteLine(
+//                        $"({start.ToShortTimeString()}-{end.ToShortTimeString()}) on {start.ToShortDateString()}");
+                    if (start.Date != end.Date) throw new Exception("BLEH");
                 }
             }
 
-//            foreach (var update in updates.OrderBy(u => u.DateTime))
-//            {
-//                switch (update.UpdateKind)
-//                {
-//                    case Update.UpdateType.StartShift:
-//                        current = update.Guard ?? -1;
-//                        if (!guards.ContainsKey(current))
-//                            guards.Add(current, new List<(int, int)>());
-//                        break;
-//                    case Update.UpdateType.Awaken:
-//                        var sleep = (lastEvent, update.DateTime.Minute);
-//                        guards[current].Add(sleep);
-//                        break;
-//                    case Update.UpdateType.Asleep:
-//                        lastEvent = update.DateTime.Minute;
-//                        break;
-//                    default:
-//                        throw new InvalidDataException();
-//                }
-//            }
-
-            if (guards.ContainsKey(-1) || guards.Any(kvp => kvp.Value.Any(t => t.Item1 < 0)))
+            int sleepiestGuard = -1, mostSleep = int.MinValue;
+            foreach (var guard in guards)
             {
-                throw new Exception();
+                int sleep = guard.Value.Select(tuple => (tuple.Item2 - tuple.Item1).Minutes).Sum();
+                if (sleep <= mostSleep) continue;
+                sleepiestGuard = guard.Key;
+                mostSleep = sleep;
             }
 
-            int max = int.MinValue;
-            int sleepGuard = -1;
-            foreach (KeyValuePair<int, List<(int, int)>> kvp in guards)
+            Console.WriteLine(
+                $"Our sleepiest guard is #{sleepiestGuard} with a grand total of {mostSleep} minutes of sleep");
+
+            int[] minutes = new int[60];
+            foreach (var (start, end) in guards[sleepiestGuard])
             {
-                int sleeptime = kvp.Value.Select(tuple => Math.Abs(tuple.Item2 - tuple.Item1)).Sum();
-                if (sleeptime <= max) continue;
-                sleepGuard = kvp.Key;
-                max = sleeptime;
-            }
-            
-            int[] sleepMinutes = Enumerable.Range(0, 60).ToArray();
-            
-            foreach ((int start, int end) in guards[sleepGuard])
-            {
-                for (int i = start; i < end; i++)
+                for (int i = start.Minute; i < end.Minute; i++)
                 {
-                    sleepMinutes[i]++;
+                    minutes[i]++;
                 }
             }
 
-            int maxSleep = sleepMinutes.Max(x => x);
-            int bestIndex = -1;
-            for (var i = 0; i < sleepMinutes.Length; i++)
+            int sleepiestMinute = -1;
+            int daysSlept = -1;
+            for (int i = 0; i < minutes.Length; i++)
             {
-                if (sleepMinutes[i] != maxSleep) continue;
-                bestIndex = i;
-                break;
+                if (minutes[i] <= daysSlept) continue;
+                sleepiestMinute = i;
+                daysSlept = minutes[i];
             }
 
-            Console.WriteLine($"min: {bestIndex}, guard: {sleepGuard}");
-            int result = bestIndex * sleepGuard;
+            var result = sleepiestMinute * sleepiestGuard;
+            Console.WriteLine($"We have {sleepiestMinute}");
             return Task.FromResult(result.ToString());
         }
 
@@ -141,7 +141,62 @@ namespace AOC.days
 
         public override Task<string> RunPartTwo(string[] lines)
         {
-            throw new NotImplementedException();
+            var updates = lines.Select(Update.ParseUpdate);
+
+            var guards = new Dictionary<int, List<(DateTime, DateTime)>>();
+
+            int currentGuard = -1;
+            Update lastUpdate = null;
+            foreach (var update in updates.OrderBy(update => update.DateTime))
+            {
+                switch (update.UpdateKind)
+                {
+                    case Update.UpdateType.StartShift:
+                        currentGuard = update.Guard ?? throw new Exception("GUard not FoUNd");
+                        if (!guards.ContainsKey(currentGuard))
+                            guards.Add(currentGuard, new List<(DateTime, DateTime)>());
+                        break;
+                    case Update.UpdateType.Awaken
+                        when lastUpdate == null || lastUpdate.UpdateKind != Update.UpdateType.Asleep:
+                        throw new Exception("Can't awaken w/o sleep");
+                    case Update.UpdateType.Awaken:
+                        guards[currentGuard].Add((lastUpdate.DateTime, update.DateTime));
+                        break;
+                    case Update.UpdateType.Asleep:
+                    default:
+                        break;
+                }
+
+                lastUpdate = update;
+            }
+
+            Console.WriteLine("Starting...");
+
+            int mostSleptInMinute = -1;
+            int sleepiestMinute = -1, sleepiestGuard = -1;
+            foreach (var guard in guards)
+            {
+                var minutes = new int[60];
+                foreach (var (start, end) in guard.Value)
+                {
+                    for (int i = start.Minute; i < end.Minute; i++)
+                    {
+                        minutes[i]++;
+                    }
+                }
+                if (minutes.Max(x => x) <= mostSleptInMinute) continue;
+                sleepiestGuard = guard.Key;
+                for (var i = 0; i < minutes.Length; i++)
+                {
+                    if (minutes[i] <= mostSleptInMinute) continue;
+                    sleepiestMinute = i;
+                    mostSleptInMinute = minutes[i];
+                }
+            }
+
+            Console.WriteLine($"Found guard #{sleepiestGuard} at minute {sleepiestMinute} ({mostSleptInMinute})");
+            int result = sleepiestGuard * sleepiestMinute;
+            return Task.FromResult(result.ToString());
         }
     }
 }
