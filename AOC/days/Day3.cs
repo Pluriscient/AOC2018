@@ -14,18 +14,19 @@ namespace AOC.days
         public override Task<string> RunPartOne(string[] lines)
         {
             Box[] res = lines.Select(Box.ParseBox).ToArray();
-            var maxWidth = res.Max(b => b.LeftOffset + b.Width) + 1;
-            var maxHeight = res.Max(b => b.TopOffset + b.Height) + 1;
-            Console.WriteLine($"We have a matrix: ({maxWidth}x{maxHeight})");
+            var maxWidth = res.Max(b => b.LeftOffset + b.Width);
+            var maxHeight = res.Max(b => b.TopOffset + b.Height);
             var carpet = new int[maxWidth, maxHeight];
+            
             foreach (var box in res)
-            {
-                foreach (var (x, y) in box.ToPoints())
-                {
-                    carpet[x, y]++;
-                }
-            }
+            foreach (var (x, y) in box.ToPoints())
+                carpet[x, y]++;
 
+            return Task.FromResult(carpet.Cast<int>().Count(el => el > 1).ToString());
+        }
+
+        private static void SaveMatrixToFile(int[,] carpet)
+        {
             var sb = new StringBuilder("Our final matrix:");
             sb.AppendLine();
             for (var y = 0; y < carpet.GetLength(0); y++)
@@ -40,11 +41,6 @@ namespace AOC.days
 
             File.WriteAllText("./foo.txt", sb.ToString());
             Console.WriteLine("Wrote to file....");
-
-            var count = carpet.Cast<int>().Count(el => el > 1);
-
-
-            return Task.FromResult(count.ToString());
         }
 
         private class Box
@@ -59,12 +55,8 @@ namespace AOC.days
             public IEnumerable<(int, int)> ToPoints()
             {
                 for (var x = LeftOffset; x < LeftOffset + Width; x++)
-                {
-                    for (var y = TopOffset; y < TopOffset + Height; y++)
-                    {
-                        yield return (x, y);
-                    }
-                }
+                for (var y = TopOffset; y < TopOffset + Height; y++)
+                    yield return (x, y);
             }
 
             private static readonly Regex Parse = new Regex(@"#(\d+) @ (\d+),(\d+): (\d+)x(\d+)");
@@ -91,23 +83,14 @@ namespace AOC.days
             Console.WriteLine($"We have a matrix: ({maxWidth}x{maxHeight})");
             var carpet = new int[maxWidth, maxHeight];
             foreach (var box in res)
+            foreach (var (x, y) in box.ToPoints())
             {
-                foreach (var (x, y) in box.ToPoints())
-                {
-                    carpet[x, y]++;
-                }
+                carpet[x, y]++;
             }
+
 
             return Task.FromResult(res
                 .First(box => box.ToPoints().All((tuple => carpet[tuple.Item1, tuple.Item2] == 1))).Id.ToString());
-
-//            foreach (var box in res)
-//            {
-//                if (box.ToPoints().All((d) => carpet[d.Item1, d.Item2] == 1))
-//                    return Task.FromResult(box.Id.ToString());
-//            }
-//
-//            return Task.FromResult("");
         }
     }
 }
