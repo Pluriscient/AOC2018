@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -6,16 +7,19 @@ namespace AOC.days
 {
     public class Day1 : AOCDay
     {
+        public override string InputTwoFileName { get; } = "inputGees";
+
         public override Task<string> RunPartOne(string[] lines)
         {
 
-            var sum = lines.Select(long.Parse).Sum();
+            long sum = lines.Select(long.Parse).Sum();
             return Task.FromResult(sum.ToString());
         }
 
         public override Task<string> RunPartTwo(string[] lines)
         {
-            List<int> list = lines.Select(int.Parse).ToList();
+            var before = DateTime.Now;
+            var list = lines.Select(int.Parse).ToList();
             var history = new HashSet<int>();
             var current = 0;
             history.Add(0);
@@ -28,6 +32,9 @@ namespace AOC.days
                     history.Add(current);
                 }
             }
+
+            
+
         }
     }
 }

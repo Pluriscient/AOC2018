@@ -45,7 +45,7 @@ namespace AOC
             catch (Exception e)
             {
                 Console.WriteLine("Ran into error: " + e.Message);
-                Debugger.Break();
+//                Debugger.Break();
                 throw;
             }
         }
@@ -68,7 +68,12 @@ namespace AOC
             string[] lines = await File.ReadAllLinesAsync(path).ConfigureAwait(false);
             try
             {
-                return await RunPartTwo(lines);
+                var before = DateTime.Now;
+                var res = await RunPartTwo(lines);
+                var after = DateTime.Now;
+
+                Console.WriteLine($"We took {(after - before).TotalMilliseconds} ms");
+                return res;
             }
             catch (Exception e)
             {

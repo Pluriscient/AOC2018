@@ -60,7 +60,7 @@ namespace AOC
             string result;
             try
             {
-                Task<string> task = isPartOne
+                var task = isPartOne
                     ? chosenRunnable.RunPartOne(path)
                     : chosenRunnable.RunPartTwo(path);
                 result = task.GetAwaiter().GetResult();
